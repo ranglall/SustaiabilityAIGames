@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco Wordle Battle: Player vs AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f7ee;
+            color: #2c5834;
+        }
+        h1 {
+            text-align: center;
+            color: #2c5834;
+            font-size: 2.2em;
+        }
+        .game-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .player-side, .ai-side {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddeedd;
+        }
+        .guess-grid {
+            display: grid;
+            grid-template-rows: repeat(6, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+        .guess-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+        }
+        .guess-cell {
+            height: 50px;
+            border: 2px solid #a7cca5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .correct {
+            background-color: #4b9560;
+            color: white;
+            border-color: #4b9560;
+        }
+        .present {
+            background-color: #aac451;
+            color: white;
+            border-color: #aac451;
+        }
+        .absent {
+            background-color: #829489;
+            color: white;
+            border-color: #829489;
+        }
+        .status {
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0;
+            min-height: 24px;
+        }
+        .player-input {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        #guess-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            text-transform: uppercase;
+            border: 2px solid #a7cca5;
+            border-radius: 4px 0 0 4px;
+        }
+        #submit-guess {
+            padding: 10px 15px;
+            background-color: #4b9560;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #submit-guess:hover {
+            background-color: #3e7b4f;
+        }
+        #submit-guess:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .keyboard {
+            display: grid;
+            grid-template-rows: repeat(3, 40px);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        .key {
+            background-color: #d0e8cc;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            min-width: 30px;
+        }
+        .key:hover {
+            background-color: #b5d4af;
+        }
+        .key.correct {
+            background-color: #4b9560;
+            color: white;
+        }
+        .key.present {
+            background-color: #aac451;
+            color: white;
+        }
+        .key.absent {
+            background-color: #829489;
+            color: white;
+        }
+        .ai-thinking {
+            text-align: center;
+            margin: 10px 0;
+            font-style: italic;
+            color: #666;
+        }
+        .result-banner {
+            text-align: center;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .win {
+            background-color: #d0e8cc;
+            color: #2c5834;
+        }
+        .lose {
+            background-color: #ffdada;
+            color: #c62828;
+        }
+        .draw {
+            background-color: #e8f0d8;
+            color: #616b46;
+        }
+        #new-game {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 20px;
+            background-color: #4b9560;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #new-game:hover {
+            background-color: #3e7b4f;
+        }
+        .word-reveal {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .instructions {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .word-bank {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .word-bank h3 {
+            text-align: center;
+            color: #2c5834;
+            margin-top: 0;
+        }
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .eco-word {
+            background-color: #e8f0d8;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #d0e8cc;
+        }
+        .eco-word:hover {
+            background-color: #d0e8cc;
+        }
+        .eco-icon {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <h1>Eco Wordle Battle: Player vs AI</h1>
+    
+    <div class="instructions">
+        <h3>Instructions:</h3>
+        <p>You and the AI each have a secret 5-letter eco-themed word to guess. Take turns making guesses. The colors will show:</p>
+        <ul>
+            <li><span style="color: #4b9560;">Green</span> - Correct letter in correct position</li>
+            <li><span style="color: #aac451;">Yellow</span> - Correct letter in wrong position</li>
+            <li><span style="color: #829489;">Gray</span> - Letter not in the word</li>
+        </ul>
+        <p>The winner is whoever guesses their word in fewer attempts. You have a maximum of 6 guesses each.</p>
+        <p>Use the word bank below or enter your own 5-letter eco-friendly words!</p>
+    </div>
+
+    <div class="word-bank">
+        <h3>Eco Word Bank</h3>
+        <div class="word-list" id="word-bank">
+            <!-- Words will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <div id="result-area"></div>
+    
+    <div class="game-container">
+        <div class="player-side">
+            <h2>Your Game</h2>
+            <div id="player-grid" class="guess-grid"></div>
+            <div id="player-status" class="status"></div>
+            <div class="player-input">
+                <input type="text" id="guess-input" maxlength="5" placeholder="Enter 5 letter word">
+                <button id="submit-guess">Guess</button>
+            </div>
+            <div id="player-keyboard" class="keyboard">
+                <div class="keyboard-row" data-row="1">
+                    <button class="key" data-key="q">q</button>
+                    <button class="key" data-key="w">w</button>
+                    <button class="key" data-key="e">e</button>
+                    <button class="key" data-key="r">r</button>
+                    <button class="key" data-key="t">t</button>
+                    <button class="key" data-key="y">y</button>
+                    <button class="key" data-key="u">u</button>
+                    <button class="key" data-key="i">i</button>
+                    <button class="key" data-key="o">o</button>
+                    <button class="key" data-key="p">p</button>
+                </div>
+                <div class="keyboard-row" data-row="2">
+                    <button class="key" data-key="a">a</button>
+                    <button class="key" data-key="s">s</button>
+                    <button class="key" data-key="d">d</button>
+                    <button class="key" data-key="f">f</button>
+                    <button class="key" data-key="g">g</button>
+                    <button class="key" data-key="h">h</button>
+                    <button class="key" data-key="j">j</button>
+                    <button class="key" data-key="k">k</button>
+                    <button class="key" data-key="l">l</button>
+                </div>
+                <div class="keyboard-row" data-row="3">
+                    <button class="key" data-key="z">z</button>
+                    <button class="key" data-key="x">x</button>
+                    <button class="key" data-key="c">c</button>
+                    <button class="key" data-key="v">v</button>
+                    <button class="key" data-key="b">b</button>
+                    <button class="key" data-key="n">n</button>
+                    <button class="key" data-key="m">m</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-side">
+            <h2>AI's Game</h2>
+            <div id="ai-grid" class="guess-grid"></div>
+            <div id="ai-status" class="status"></div>
+            <div id="ai-thinking" class="ai-thinking"></div>
+        </div>
+    </div>
+
+    <button id="new-game" style="display: none;">Play Again</button>
+
+    <!-- Link to the JavaScript file -->
+    <script src="logic.js"></script>
+</body>
+</html>
